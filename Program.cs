@@ -1,16 +1,16 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Discord;
-using DotaHead;
+using DNet_V3_Tutorial;
 using DotaHead.Database;
 using DotaHead.Logger;
 using DotaHead.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace DNet_V3_Tutorial;
+namespace DotaHead;
 
 public class Program
 {
@@ -39,6 +39,7 @@ public class Program
                     })
                     .AddSingleton<HeroesService>()
                     .AddTransient<ConsoleLogger>()
+                    .AddSingleton<MatchDetailsBuilder>()
                     // Used for slash commands and their registration with Discord
                     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                     // Required to subscribe to the various client events used in conjunction with Interactions
@@ -52,11 +53,16 @@ public class Program
 
     private static AppSettings ReadAppSettings()
     {
-        return new ConfigurationBuilder()
+        var appSettings = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", false, true)
             .Build()
             .Get<AppSettings>();
+
+        if (appSettings == null)
+            throw new ApplicationException("Cannot map appsettings.json content.");
+
+        return appSettings;
     }
 
     public async Task RunAsync(IHost host)

@@ -1,6 +1,6 @@
 ﻿using OpenDotaApi.Api.Matches.Model;
 
-namespace DotaHead.Modules;
+namespace DotaHead.Modules.Match;
 
 public class PlayerRecord
 {
