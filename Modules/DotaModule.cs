@@ -2,7 +2,8 @@
 using Discord;
 using Discord.Interactions;
 using DotaHead.Services;
-using DNet_V3_Tutorial.Log;
+using DotaHead.Database;
+using DotaHead.Logger;
 using OpenDotaApi;
 using OpenDotaApi.Api.Matches.Model;
 
@@ -10,16 +11,15 @@ namespace DotaHead.Modules;
 
 public class DotaModule : InteractionModuleBase<SocketInteractionContext>
 {
-    public InteractionService Commands { get; set; }
-    private readonly Logger _logger;
-    private readonly PlayersService _playersService;
+    private readonly Logger.Logger _logger;
+    private readonly DataContext _dataContext;
     private readonly HeroesService _heroesService;
 
-    public DotaModule(ConsoleLogger logger, PlayersService playersService, HeroesService heroesService)
+    public DotaModule(ConsoleLogger logger, HeroesService heroesService, DataContext dataContext)
     {
         _logger = logger;
-        _playersService = playersService;
         _heroesService = heroesService;
+        _dataContext = dataContext;
     }
 
     [SlashCommand("lm", "Get data about last match")]
@@ -27,8 +27,8 @@ public class DotaModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync();
         var replayParsed = true;
-
-        var currentUser = _playersService.PlayerIds.FirstOrDefault(p => (ulong)p.DiscordId == Context.User.Id);
+        
+        var currentUser = _dataContext.Players.FirstOrDefault(p => p.DiscordId == Context.User.Id);
 
         var openDotaClient = new OpenDota();
         var recentMatches = await openDotaClient.Players.GetRecentMatchesAsync(currentUser.DotaId);
@@ -63,7 +63,7 @@ public class DotaModule : InteractionModuleBase<SocketInteractionContext>
 
         var ourPlayers =
             playersBySide.Values.SelectMany(p => p).Where(p =>
-                _playersService.PlayerIds.Select(q => q.DotaId).Contains(p.Player.AccountId.GetValueOrDefault()));
+                _dataContext.Players.Select(q => q.DotaId).Contains(p.Player.AccountId.GetValueOrDefault()));
         var winBool = ourPlayers.First().Player.Win == 1;
 
         var gameLinks =
