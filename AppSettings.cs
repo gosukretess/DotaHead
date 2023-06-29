@@ -4,6 +4,7 @@ namespace DotaHead;
 
 public class AppSettings
 {
+    public string ConnectionString { get; set; }
     public ulong GuildId { get; set; }
     public ulong ChannelId { get; set; }
     public string DiscordToken { get; set; }
@@ -11,7 +12,4 @@ public class AppSettings
     public int PeakHoursEnd { get; set; }
     public int PeakHoursRefreshTime { get; set; }
     public int NormalRefreshTime { get; set; }
-
-
-    public List<UserRecord> Players { get; set; }
 }

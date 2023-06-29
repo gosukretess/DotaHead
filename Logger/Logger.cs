@@ -1,7 +1,7 @@
 ﻿using Discord;
 using static System.Guid;
 
-namespace DNet_V3_Tutorial.Log
+namespace DotaHead.Logger
 {
     public abstract class Logger : ILogger
     {

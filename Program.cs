@@ -1,12 +1,14 @@
 ﻿using Discord.Interactions;
 using Discord.WebSocket;
-using DNet_V3_Tutorial.Log;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Discord;
 using DotaHead;
+using DotaHead.Database;
+using DotaHead.Logger;
 using DotaHead.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace DNet_V3_Tutorial;
 
@@ -31,7 +33,10 @@ public class Program
                 services
                     .AddSingleton(configuration)
                     .AddSingleton(client)
-                    .AddSingleton<PlayersService>()
+                    .AddDbContext<DataContext>(options =>
+                    {
+                        options.UseSqlite(configuration.ConnectionString);
+                    })
                     .AddSingleton<HeroesService>()
                     .AddTransient<ConsoleLogger>()
                     // Used for slash commands and their registration with Discord
@@ -41,7 +46,7 @@ public class Program
                     .AddSingleton<ScheduledTask>()
                     )
             .Build();
-
+        
         await RunAsync(host);
     }
 
@@ -58,6 +63,9 @@ public class Program
     {
         using var serviceScope = host.Services.CreateScope();
         var provider = serviceScope.ServiceProvider;
+
+        var dbContext = provider.GetRequiredService<DataContext>();
+        await dbContext.Database.MigrateAsync();
 
         var commands = provider.GetRequiredService<InteractionService>();
         var client = provider.GetRequiredService<DiscordSocketClient>();

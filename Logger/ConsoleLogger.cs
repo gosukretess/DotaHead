@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace DNet_V3_Tutorial.Log
+namespace DotaHead.Logger
 {
     public class ConsoleLogger : Logger
     {
