@@ -1,4 +1,4 @@
-﻿namespace DotaHead.Modules;
+﻿namespace DotaHead.Modules.Match;
 
 public enum Role
 {

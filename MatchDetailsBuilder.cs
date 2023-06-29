@@ -1,51 +1,37 @@
 ﻿using System.Text;
 using Discord;
-using Discord.Interactions;
-using DotaHead.Services;
 using DotaHead.Database;
-using DotaHead.Logger;
+using DotaHead.Modules.Match;
+using DotaHead.Services;
 using OpenDotaApi;
 using OpenDotaApi.Api.Matches.Model;
 
-namespace DotaHead.Modules;
+namespace DotaHead;
 
-public class DotaModule : InteractionModuleBase<SocketInteractionContext>
+public class MatchDetailsBuilder
 {
-    private readonly Logger.Logger _logger;
     private readonly DataContext _dataContext;
     private readonly HeroesService _heroesService;
 
-    public DotaModule(ConsoleLogger logger, HeroesService heroesService, DataContext dataContext)
+    public MatchDetailsBuilder(DataContext dataContext, HeroesService heroesService)
     {
-        _logger = logger;
-        _heroesService = heroesService;
         _dataContext = dataContext;
+        _heroesService = heroesService;
     }
 
-    [SlashCommand("lm", "Get data about last match")]
-    public async Task LastMatch()
+    public async Task<Embed> Build(long matchId, bool isParsed)
     {
-        await DeferAsync();
-        var replayParsed = true;
-        
-        var currentUser = _dataContext.Players.FirstOrDefault(p => p.DiscordId == Context.User.Id);
-
         var openDotaClient = new OpenDota();
-        var recentMatches = await openDotaClient.Players.GetRecentMatchesAsync(currentUser.DotaId);
-
-        var match = recentMatches[0];
-        var matchId = recentMatches[0].MatchId.GetValueOrDefault();
-        if (match.Version == null)
+ 
+        if (!isParsed)
         {
-            await _logger.Log(new LogMessage(LogSeverity.Info, nameof(DotaModule), "Match not parsed, requested parse."));
+            // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), "Match not parsed, requested parse."));
             var parseResponse = await openDotaClient.Request.SubmitNewParseRequestAsync(matchId);
-            replayParsed = await WaitForParseCompletion(openDotaClient, parseResponse.Job.JobId);
+            isParsed = await WaitForParseCompletion(openDotaClient, parseResponse.Job.JobId);
         }
 
-        await _logger.Log(new LogMessage(LogSeverity.Info, nameof(DotaModule), $"Getting match details - matchId: {matchId}"));
+        // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Getting match details - matchId: {matchId}"));
         var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
-
-        var parsed = matchDetails.Version != null;
 
         var minutes = matchDetails.Duration.GetValueOrDefault() / 60;
         var seconds = matchDetails.Duration.GetValueOrDefault() % 60;
@@ -108,7 +94,7 @@ public class DotaModule : InteractionModuleBase<SocketInteractionContext>
         embed.AddField("Cores head to head in 10m:",
             FormatHeadToHeadTable(playersBySide, ourPlayers.First().Team));
 
-        await ModifyOriginalResponseAsync(r => r.Embed = embed.Build());
+        return embed.Build();
     }
 
     private async Task<bool> WaitForParseCompletion(OpenDota openDotaClient, long jobId)
@@ -123,12 +109,12 @@ public class DotaModule : InteractionModuleBase<SocketInteractionContext>
                 return true;
             }
 
-            await _logger.Log(new LogMessage(LogSeverity.Info, nameof(DotaModule), $"Parse not finished. Waiting for {waitTime} seconds."));
+            // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Parse not finished. Waiting for {waitTime} seconds."));
             await Task.Delay(waitTime * 1000);
             waitTime += 2;
         }
 
-        await _logger.Log(new LogMessage(LogSeverity.Info, nameof(DotaModule), $"Parse failed."));
+        // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Parse failed."));
         return false;
     }
 
