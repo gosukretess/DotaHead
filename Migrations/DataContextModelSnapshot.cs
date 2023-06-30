@@ -19,14 +19,13 @@ namespace DotaHead.Migrations
 
             modelBuilder.Entity("DotaHead.Database.MatchDbo", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("MatchId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("GuildId", "MatchId");
 
                     b.ToTable("Matches");
                 });
@@ -43,25 +42,27 @@ namespace DotaHead.Migrations
                     b.Property<long>("DotaId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GuildId");
+
                     b.ToTable("Players");
                 });
 
             modelBuilder.Entity("DotaHead.Database.ServerDbo", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<ulong>("GuildId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong?>("ChannelId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NormalRefreshTime")
@@ -76,9 +77,27 @@ namespace DotaHead.Migrations
                     b.Property<int>("PeakHoursStart")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("GuildId");
 
                     b.ToTable("Servers");
+                });
+
+            modelBuilder.Entity("DotaHead.Database.MatchDbo", b =>
+                {
+                    b.HasOne("DotaHead.Database.ServerDbo", null)
+                        .WithMany()
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DotaHead.Database.PlayerDbo", b =>
+                {
+                    b.HasOne("DotaHead.Database.ServerDbo", null)
+                        .WithMany()
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
