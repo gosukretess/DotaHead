@@ -3,6 +3,7 @@ using Discord;
 using DotaHead.Database;
 using DotaHead.Modules.Match;
 using DotaHead.Services;
+using Microsoft.Extensions.Logging;
 using OpenDotaApi;
 using OpenDotaApi.Api.Matches.Model;
 
@@ -12,11 +13,13 @@ public class MatchDetailsBuilder
 {
     private readonly DataContext _dataContext;
     private readonly HeroesService _heroesService;
+    private readonly ILogger<MatchDetailsBuilder> _logger;
 
-    public MatchDetailsBuilder(DataContext dataContext, HeroesService heroesService)
+    public MatchDetailsBuilder(DataContext dataContext, HeroesService heroesService, ILogger<MatchDetailsBuilder> logger)
     {
         _dataContext = dataContext;
         _heroesService = heroesService;
+        _logger = logger;
     }
 
     public async Task<Embed> Build(long matchId, bool isParsed)
@@ -25,12 +28,12 @@ public class MatchDetailsBuilder
  
         if (!isParsed)
         {
-            // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), "Match not parsed, requested parse."));
+            _logger.LogInformation("Match not parsed, requested parse.");
             var parseResponse = await openDotaClient.Request.SubmitNewParseRequestAsync(matchId);
             isParsed = await WaitForParseCompletion(openDotaClient, parseResponse.Job.JobId);
         }
 
-        // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Getting match details - matchId: {matchId}"));
+        _logger.LogInformation($"Getting match details - matchId: {matchId}");
         var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
 
         var minutes = matchDetails.Duration.GetValueOrDefault() / 60;
@@ -108,13 +111,13 @@ public class MatchDetailsBuilder
             {
                 return true;
             }
-
-            // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Parse not finished. Waiting for {waitTime} seconds."));
+            
+            _logger.LogInformation($"Parse not finished. Waiting for {waitTime} seconds.");
             await Task.Delay(waitTime * 1000);
             waitTime += 2;
         }
 
-        // await _logger.Log(new LogMessage(LogSeverity.Info, nameof(MatchModule), $"Parse failed."));
+        _logger.LogInformation("Parse failed.");
         return false;
     }
 
@@ -122,7 +125,7 @@ public class MatchDetailsBuilder
     {
         var builder = new StringBuilder();
 
-        builder.Append($"\n");
+        builder.Append("\n");
         builder.Append($"GPM: {player.Player.GoldPerMin}\n" +
                        $"Gold 10m: {player.Player.GoldEachMinute[10]}\n" +
                        $"Gold 20m: {player.Player.GoldEachMinute[20]}\n" +
