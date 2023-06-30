@@ -2,7 +2,6 @@
 using Discord;
 using Discord.Interactions;
 using DotaHead.Database;
-using DotaHead.Logger;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -10,12 +9,10 @@ namespace DotaHead.Modules.Player;
 
 public class PlayerModule : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly Logger.Logger _logger;
     private readonly DataContext _dataContext;
 
-    public PlayerModule(ConsoleLogger logger, DataContext dataContext)
+    public PlayerModule(DataContext dataContext)
     {
-        _logger = logger;
         _dataContext = dataContext;
     }
 

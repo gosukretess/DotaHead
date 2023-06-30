@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using DotaHead.Database;
+using Microsoft.Extensions.Logging;
 using OpenDotaApi;
 
 namespace DotaHead;
@@ -11,14 +12,16 @@ public class ScheduledTask
     private readonly DiscordSocketClient _client;
     private readonly DataContext _dataContext;
     private readonly MatchDetailsBuilder _matchDetailsBuilder;
+    private readonly ILogger<ScheduledTask> _logger;
 
     public ScheduledTask(AppSettings appSettings, DiscordSocketClient client, DataContext dataContext,
-        MatchDetailsBuilder matchDetailsBuilder)
+        MatchDetailsBuilder matchDetailsBuilder, ILogger<ScheduledTask> logger)
     {
         _appSettings = appSettings;
         _client = client;
         _dataContext = dataContext;
         _matchDetailsBuilder = matchDetailsBuilder;
+        _logger = logger;
     }
 
     public async Task StartAsync()
@@ -37,6 +40,8 @@ public class ScheduledTask
 
     private async Task ExecuteTaskAsync()
     {
+        _logger.LogInformation("Checking for new matches...");
+
         var matchIdsToRequest = new List<(long matchId, bool isParsed)>();
         var openDotaClient = new OpenDota();
 
@@ -53,7 +58,11 @@ public class ScheduledTask
             matchIdsToRequest.Add((lastMatch.MatchId!.Value, lastMatch.Version != null));
         }
 
-        if (matchIdsToRequest.Count == 0) return;
+        if (matchIdsToRequest.Count == 0)
+        {
+            _logger.LogInformation("No new matches found.");
+            return;
+        }
 
         foreach (var (matchId, isParsed) in matchIdsToRequest)
         {
@@ -63,6 +72,8 @@ public class ScheduledTask
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId });
             await _dataContext.SaveChangesAsync();
         }
+
+        _logger.LogInformation("finished checking for new matches.");
     }
 
     private TimeSpan CalculateInterval()

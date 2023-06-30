@@ -3,19 +3,18 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using DNet_V3_Tutorial;
 using DotaHead.Database;
-using DotaHead.Logger;
 using DotaHead.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace DotaHead;
 
 public class Program
 {
     public static Task Main(string[] args) => new Program().MainAsync();
-
 
     public async Task MainAsync()
     {
@@ -29,25 +28,26 @@ public class Program
         });
 
         using var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging((hostingContext, logging) =>
+            {
+                logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                logging.AddConsole();
+            })
             .ConfigureServices((_, services) =>
                 services
                     .AddSingleton(configuration)
                     .AddSingleton(client)
-                    .AddDbContext<DataContext>(options =>
-                    {
-                        options.UseSqlite(configuration.ConnectionString);
-                    })
+                    .AddDbContext<DataContext>(options => { options.UseSqlite(configuration.ConnectionString); })
                     .AddSingleton<HeroesService>()
-                    .AddTransient<ConsoleLogger>()
                     .AddSingleton<MatchDetailsBuilder>()
                     // Used for slash commands and their registration with Discord
                     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                     // Required to subscribe to the various client events used in conjunction with Interactions
                     .AddSingleton<InteractionHandler>()
                     .AddSingleton<ScheduledTask>()
-                    )
+            )
             .Build();
-        
+
         await RunAsync(host);
     }
 
@@ -82,10 +82,10 @@ public class Program
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
         await provider.GetRequiredService<HeroesService>().InitializeAsync();
 
-        // Subscribe to client log events
-        client.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
-        // Subscribe to slash command log events
-        commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
+        // // Subscribe to client log events
+        client.Log += message => LogEvent(provider.GetRequiredService<ILogger<Program>>(), message);
+        // // Subscribe to slash command log events
+        commands.Log += message => LogEvent(provider.GetRequiredService<ILogger<InteractionService>>(), message);
 
         client.Ready += async () =>
         {
@@ -93,12 +93,16 @@ public class Program
             await scheduledTask.StartAsync();
         };
 
-
         await client.LoginAsync(TokenType.Bot, config.DiscordToken);
         await client.StartAsync();
 
-
         await Task.Delay(-1);
         scheduledTask.Stop();
+    }
+
+    private Task LogEvent(ILogger logger, LogMessage message)
+    {
+        logger.LogInformation(message.Message);
+        return Task.CompletedTask;
     }
 }
