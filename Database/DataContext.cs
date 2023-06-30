@@ -11,4 +11,5 @@ public class DataContext : DbContext
 
     public DbSet<PlayerDbo> Players { get; set; }
     public DbSet<MatchDbo> Matches { get; set; }
+    public DbSet<ServerDbo> Servers { get; set; }
 }

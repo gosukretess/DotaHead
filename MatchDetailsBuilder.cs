@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Discord;
-using DotaHead.Database;
 using DotaHead.Modules.Match;
 using DotaHead.Services;
 using Microsoft.Extensions.Logging;
@@ -11,18 +10,16 @@ namespace DotaHead;
 
 public class MatchDetailsBuilder
 {
-    private readonly DataContext _dataContext;
     private readonly HeroesService _heroesService;
     private readonly ILogger<MatchDetailsBuilder> _logger;
 
-    public MatchDetailsBuilder(DataContext dataContext, HeroesService heroesService, ILogger<MatchDetailsBuilder> logger)
+    public MatchDetailsBuilder(HeroesService heroesService, ILogger<MatchDetailsBuilder> logger)
     {
-        _dataContext = dataContext;
         _heroesService = heroesService;
         _logger = logger;
     }
 
-    public async Task<Embed> Build(long matchId, bool isParsed)
+    public async Task<Embed> Build(long matchId, bool isParsed, IEnumerable<long> playersDotaIds)
     {
         var openDotaClient = new OpenDota();
  
@@ -51,8 +48,7 @@ public class MatchDetailsBuilder
 
 
         var ourPlayers =
-            playersBySide.Values.SelectMany(p => p).Where(p =>
-                _dataContext.Players.Select(q => q.DotaId).Contains(p.Player.AccountId.GetValueOrDefault()));
+            playersBySide.Values.SelectMany(p => p).Where(p => playersDotaIds.Contains(p.Player.AccountId.GetValueOrDefault()));
         var winBool = ourPlayers.First().Player.Win == 1;
 
         var gameLinks =
@@ -64,7 +60,8 @@ public class MatchDetailsBuilder
         {
             Author = new EmbedAuthorBuilder().WithName(string.Join(',', ourPlayers.Select(p => p.Player.Personaname))),
             Description = $"{(winBool ? "Won" : "Lost")} a match in {minutes} minutes and {seconds} seconds. {gameLinks}",
-            Color = winBool ? Color.Green : Color.Red
+            Color = winBool ? Color.Green : Color.Red,
+            Footer = new EmbedFooterBuilder().WithText($"MatchId: {matchId} • {matchDetails.StartTime!.Value.ToLocalTime()}")
         };
 
         foreach (var playerRecord in ourPlayers)

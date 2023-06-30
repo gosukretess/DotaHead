@@ -1,31 +1,36 @@
 ﻿using Discord.WebSocket;
 using DotaHead.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpenDotaApi;
 
 namespace DotaHead;
 
-public class ScheduledTask
+public class MatchMonitor
 {
     private Timer? _timer;
-    private readonly AppSettings _appSettings;
     private readonly DiscordSocketClient _client;
     private readonly DataContext _dataContext;
+    private readonly ulong _guildId;
     private readonly MatchDetailsBuilder _matchDetailsBuilder;
-    private readonly ILogger<ScheduledTask> _logger;
+    private readonly ILogger<MatchMonitor> _logger;
+    private ServerDbo? _serverDbo;
 
-    public ScheduledTask(AppSettings appSettings, DiscordSocketClient client, DataContext dataContext,
-        MatchDetailsBuilder matchDetailsBuilder, ILogger<ScheduledTask> logger)
+    public MatchMonitor(DiscordSocketClient client, DataContext dataContext, ulong guildId,
+        MatchDetailsBuilder matchDetailsBuilder, ILoggerFactory logger)
     {
-        _appSettings = appSettings;
         _client = client;
         _dataContext = dataContext;
+        _guildId = guildId;
         _matchDetailsBuilder = matchDetailsBuilder;
-        _logger = logger;
+        _logger = new Logger<MatchMonitor>(logger);
     }
 
     public async Task StartAsync()
     {
+        _serverDbo = await _dataContext.Servers.FirstOrDefaultAsync(s => s.GuildId == _guildId);
+        if (_serverDbo == null) return;
+
         _timer = new Timer(TimerCallback, null, TimeSpan.Zero, CalculateInterval());
         await Task.Delay(0);
     }
@@ -40,13 +45,20 @@ public class ScheduledTask
 
     private async Task ExecuteTaskAsync()
     {
-        _logger.LogInformation("Checking for new matches...");
+        _logger.LogInformation($"Checking for new matches... (GuildId: {_guildId})");
+        await _dataContext.Entry(_serverDbo!).ReloadAsync();
+        if (_serverDbo!.ChannelId == null)
+        {
+            _logger.LogWarning($"ChannelId not configured for Guild: {_guildId}!");
+            return;
+        }
 
         var matchIdsToRequest = new List<(long matchId, bool isParsed)>();
         var openDotaClient = new OpenDota();
+        var playerIds = _dataContext.Players.Select(p => p.DotaId);
 
         // Prepare list of matches to fetch
-        foreach (var playerDotaId in _dataContext.Players.Select(p => p.DotaId))
+        foreach (var playerDotaId in playerIds)
         {
             var recentMatches = await openDotaClient.Players.GetRecentMatchesAsync(playerDotaId);
             var lastMatch = recentMatches.FirstOrDefault();
@@ -66,8 +78,8 @@ public class ScheduledTask
 
         foreach (var (matchId, isParsed) in matchIdsToRequest)
         {
-            var embed = await _matchDetailsBuilder.Build(matchId, isParsed);
-            await _client.GetGuild(_appSettings.GuildId).GetTextChannel(_appSettings.ChannelId)
+            var embed = await _matchDetailsBuilder.Build(matchId, isParsed, playerIds);
+            await _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value)
                 .SendMessageAsync(embed: embed);
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId });
             await _dataContext.SaveChangesAsync();
@@ -80,18 +92,18 @@ public class ScheduledTask
     {
         var now = DateTime.Now.Hour;
 
-        if (_appSettings.PeakHoursEnd > _appSettings.PeakHoursStart) // Peak hours in one day
+        if (_serverDbo!.PeakHoursEnd > _serverDbo!.PeakHoursStart) // Peak hours in one day
         {
-            if (now >= _appSettings.PeakHoursStart && now < _appSettings.PeakHoursEnd)
-                return TimeSpan.FromMinutes(_appSettings.PeakHoursRefreshTime);
+            if (now >= _serverDbo.PeakHoursStart && now < _serverDbo.PeakHoursEnd)
+                return TimeSpan.FromMinutes(_serverDbo.PeakHoursRefreshTime);
         }
         else // Peak hours cross the midnight
         {
-            if (now >= _appSettings.PeakHoursStart || now < _appSettings.PeakHoursEnd)
-                return TimeSpan.FromMinutes(_appSettings.PeakHoursRefreshTime);
+            if (now >= _serverDbo.PeakHoursStart || now < _serverDbo.PeakHoursEnd)
+                return TimeSpan.FromMinutes(_serverDbo.PeakHoursRefreshTime);
         }
 
-        return TimeSpan.FromMinutes(_appSettings.NormalRefreshTime);
+        return TimeSpan.FromMinutes(_serverDbo.NormalRefreshTime);
     }
 
     public void Stop()
