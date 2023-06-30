@@ -28,7 +28,8 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
         var lastMatch = recentMatches.FirstOrDefault();
 
         if (lastMatch?.MatchId == null) return;
-        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, lastMatch.Version != null);
+        var playerIds = _dataContext.Players.Select(p => p.DotaId);
+        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, lastMatch.Version != null, playerIds);
 
         await ModifyOriginalResponseAsync(r => r.Embed = embed);
     }

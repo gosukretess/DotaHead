@@ -40,11 +40,11 @@ public class Program
                     .AddDbContext<DataContext>(options => { options.UseSqlite(configuration.ConnectionString); })
                     .AddSingleton<HeroesService>()
                     .AddSingleton<MatchDetailsBuilder>()
+                    .AddSingleton<MonitorsContainer>()
                     // Used for slash commands and their registration with Discord
                     .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                     // Required to subscribe to the various client events used in conjunction with Interactions
                     .AddSingleton<InteractionHandler>()
-                    .AddSingleton<ScheduledTask>()
             )
             .Build();
 
@@ -76,7 +76,7 @@ public class Program
         var commands = provider.GetRequiredService<InteractionService>();
         var client = provider.GetRequiredService<DiscordSocketClient>();
         var config = provider.GetRequiredService<AppSettings>();
-        var scheduledTask = provider.GetRequiredService<ScheduledTask>();
+        var monitorsContainer = provider.GetRequiredService<MonitorsContainer>();
 
 
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
@@ -87,17 +87,42 @@ public class Program
         // // Subscribe to slash command log events
         commands.Log += message => LogEvent(provider.GetRequiredService<ILogger<InteractionService>>(), message);
 
+        client.JoinedGuild += guild => OnJoinedGuild(guild, dbContext, commands, monitorsContainer);
         client.Ready += async () =>
         {
-            await commands.RegisterCommandsToGuildAsync(config.GuildId);
-            await scheduledTask.StartAsync();
+            foreach (var server in dbContext.Servers)
+            {
+                await commands.RegisterCommandsToGuildAsync(server.GuildId);
+                await monitorsContainer.AddMonitor(dbContext, server.GuildId);
+            }
         };
 
         await client.LoginAsync(TokenType.Bot, config.DiscordToken);
         await client.StartAsync();
 
         await Task.Delay(-1);
-        scheduledTask.Stop();
+    }
+
+    private async Task OnJoinedGuild(SocketGuild guild, DataContext dataContext, 
+        InteractionService interactionService, MonitorsContainer monitorsContainer)
+    {
+        if (!dataContext.Servers.Any(s => s.GuildId == guild.Id))
+        {
+            await dataContext.Servers.AddAsync(new ServerDbo
+            {
+                GuildId = guild.Id,
+                ChannelId = null,
+                PeakHoursStart = 20,
+                PeakHoursEnd = 1,
+                PeakHoursRefreshTime = 2,
+                NormalRefreshTime = 1
+            });
+        }
+
+        await dataContext.SaveChangesAsync();
+
+        await interactionService.RegisterCommandsToGuildAsync(guild.Id);
+        await monitorsContainer.AddMonitor(dataContext, guild.Id);
     }
 
     private Task LogEvent(ILogger logger, LogMessage message)
