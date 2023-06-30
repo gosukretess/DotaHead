@@ -21,7 +21,7 @@ public class PlayerModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync();
 
-        var players = _dataContext.Players.ToList();
+        var players = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).ToList();
         var response = new StringBuilder();
 
         foreach (var player in players)
@@ -63,7 +63,7 @@ public class PlayerModule : InteractionModuleBase<SocketInteractionContext>
     public async Task RemovePlayer(string name)
     {
         await DeferAsync();
-        var player = await _dataContext.Players.FirstOrDefaultAsync(p => p.Name == name);
+        var player = await _dataContext.Players.FirstOrDefaultAsync(p => p.Name == name && p.GuildId == Context.Guild.Id);
         if (player == null)
         {
             await ReplyAsync($"Player with a name {name} does not exist!");
@@ -81,7 +81,8 @@ public class PlayerModule : InteractionModuleBase<SocketInteractionContext>
             {
                 Name = name,
                 DotaId = dotaId,
-                DiscordId = discordId
+                DiscordId = discordId,
+                GuildId = Context.Guild.Id
             });
         await _dataContext.SaveChangesAsync();
         return player;

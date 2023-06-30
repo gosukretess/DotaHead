@@ -20,7 +20,7 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync();
 
-        var currentUser = _dataContext.Players.FirstOrDefault(p => p.DiscordId == Context.User.Id);
+        var currentUser = _dataContext.Players.FirstOrDefault(p => p.DiscordId == Context.User.Id && p.GuildId == Context.Guild.Id);
         if (currentUser == null) return;
 
         var openDotaClient = new OpenDota();
@@ -28,7 +28,7 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
         var lastMatch = recentMatches.FirstOrDefault();
 
         if (lastMatch?.MatchId == null) return;
-        var playerIds = _dataContext.Players.Select(p => p.DotaId);
+        var playerIds = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).Select(p => p.DotaId);
         var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, lastMatch.Version != null, playerIds);
 
         await ModifyOriginalResponseAsync(r => r.Embed = embed);

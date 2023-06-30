@@ -1,7 +1,7 @@
 ﻿namespace DotaHead.Database;
 
-public class MatchDbo
+public record MatchDbo
 {
-    public int Id { get; set; }
     public long MatchId { get; set; }
+    public ulong GuildId { get; set; }
 }

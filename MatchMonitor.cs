@@ -55,7 +55,7 @@ public class MatchMonitor
 
         var matchIdsToRequest = new List<(long matchId, bool isParsed)>();
         var openDotaClient = new OpenDota();
-        var playerIds = _dataContext.Players.Select(p => p.DotaId);
+        var playerIds = _dataContext.Players.Where(p => p.GuildId == _guildId).Select(p => p.DotaId);
 
         // Prepare list of matches to fetch
         foreach (var playerDotaId in playerIds)
@@ -64,7 +64,7 @@ public class MatchMonitor
             var lastMatch = recentMatches.FirstOrDefault();
 
             if (lastMatch?.MatchId == null) continue;
-            if (_dataContext.Matches.Any(m => m.MatchId == lastMatch.MatchId)) continue;
+            if (_dataContext.Matches.Where(m => m.GuildId == _guildId).Any(m => m.MatchId == lastMatch.MatchId)) continue;
             if (matchIdsToRequest.Any(m => m.matchId == lastMatch.MatchId)) continue;
 
             matchIdsToRequest.Add((lastMatch.MatchId!.Value, lastMatch.Version != null));
@@ -81,7 +81,7 @@ public class MatchMonitor
             var embed = await _matchDetailsBuilder.Build(matchId, isParsed, playerIds);
             await _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value)
                 .SendMessageAsync(embed: embed);
-            await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId });
+            await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId, GuildId = _guildId});
             await _dataContext.SaveChangesAsync();
         }
 

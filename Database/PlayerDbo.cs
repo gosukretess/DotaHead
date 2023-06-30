@@ -1,4 +1,6 @@
-﻿namespace DotaHead.Database;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DotaHead.Database;
 
 public class PlayerDbo
 {
@@ -6,4 +8,5 @@ public class PlayerDbo
     public string Name { get; set; }
     public long DotaId { get; set; }
     public ulong DiscordId { get; set; }
+    public ulong GuildId { get; set; }
 }
