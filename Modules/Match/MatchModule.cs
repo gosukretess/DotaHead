@@ -29,7 +29,7 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
 
         if (lastMatch?.MatchId == null) return;
         var playerIds = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).Select(p => p.DotaId);
-        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, lastMatch.Version != null, playerIds);
+        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, playerIds);
 
         await ModifyOriginalResponseAsync(r => r.Embed = embed);
     }

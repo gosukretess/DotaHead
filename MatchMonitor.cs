@@ -1,8 +1,8 @@
 ﻿using Discord.WebSocket;
+using DotaHead.ApiClient;
 using DotaHead.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using OpenDotaApi;
 
 namespace DotaHead;
 
@@ -53,21 +53,21 @@ public class MatchMonitor
             return;
         }
 
-        var matchIdsToRequest = new List<(long matchId, bool isParsed)>();
-        var openDotaClient = new OpenDota();
+        var matchIdsToRequest = new List<long>();
+        using var steamApiClient = new SteamApiClient();
         var playerIds = _dataContext.Players.Where(p => p.GuildId == _guildId).Select(p => p.DotaId);
 
         // Prepare list of matches to fetch
         foreach (var playerDotaId in playerIds)
         {
-            var recentMatches = await openDotaClient.Players.GetRecentMatchesAsync(playerDotaId);
-            var lastMatch = recentMatches.FirstOrDefault();
+            var recentMatches = await steamApiClient.GetMatchHistory(playerDotaId, 1);
+            var lastMatch = recentMatches.Matches.FirstOrDefault();
 
             if (lastMatch?.MatchId == null) continue;
             if (_dataContext.Matches.Where(m => m.GuildId == _guildId).Any(m => m.MatchId == lastMatch.MatchId)) continue;
-            if (matchIdsToRequest.Any(m => m.matchId == lastMatch.MatchId)) continue;
+            if (matchIdsToRequest.Any(m => m == lastMatch.MatchId)) continue;
 
-            matchIdsToRequest.Add((lastMatch.MatchId!.Value, lastMatch.Version != null));
+            matchIdsToRequest.Add(lastMatch.MatchId);
         }
 
         if (matchIdsToRequest.Count == 0)
@@ -76,16 +76,16 @@ public class MatchMonitor
             return;
         }
 
-        foreach (var (matchId, isParsed) in matchIdsToRequest)
+        foreach (var matchId in matchIdsToRequest)
         {
-            var embed = await _matchDetailsBuilder.Build(matchId, isParsed, playerIds);
+            var embed = await _matchDetailsBuilder.Build(matchId, playerIds);
             await _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value)
                 .SendMessageAsync(embed: embed);
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId, GuildId = _guildId});
             await _dataContext.SaveChangesAsync();
         }
 
-        _logger.LogInformation("finished checking for new matches.");
+        _logger.LogInformation("Finished checking for new matches.");
     }
 
     private TimeSpan CalculateInterval()

@@ -19,10 +19,12 @@ public class MatchDetailsBuilder
         _logger = logger;
     }
 
-    public async Task<Embed> Build(long matchId, bool isParsed, IEnumerable<long> playersDotaIds)
+    public async Task<Embed> Build(long matchId, IEnumerable<long> playersDotaIds)
     {
         var openDotaClient = new OpenDota();
- 
+        var lastMatch = await openDotaClient.Matches.GetMatchAsync(matchId);
+        var isParsed = lastMatch.Version != null;
+
         if (!isParsed)
         {
             _logger.LogInformation("Match not parsed, requested parse.");
@@ -100,7 +102,7 @@ public class MatchDetailsBuilder
     private async Task<bool> WaitForParseCompletion(OpenDota openDotaClient, long jobId)
     {
         var waitTime = 2;
-        while (waitTime <= 10)
+        while (waitTime <= 12)
         {
             var response = await openDotaClient.Request.GetParseRequestStateAsync(jobId);
 
