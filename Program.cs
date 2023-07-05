@@ -56,6 +56,7 @@ public class Program
         var appSettings = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", false, true)
+            .AddEnvironmentVariables("DOTAHEAD_")
             .Build()
             .Get<AppSettings>();
 

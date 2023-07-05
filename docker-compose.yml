@@ -1,0 +1,15 @@
+﻿version: '3.8'
+services:
+  dotahead:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./appsettings.docker.json:/app/appsettings.json
+      - ./sqlite:/app/sqlite
+    environment:
+      - DOTAHEAD_DiscordToken=[YOUR_TOKEN_HERE]
+      - DOTAHEAD_SteamToken=[YOUR_TOKEN_HERE]
+    ports:
+      - 433:433
+      - 80:80
