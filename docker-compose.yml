@@ -1,9 +1,7 @@
 ﻿version: '3.8'
 services:
   dotahead:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: kapu1500/dotahead:latest
     volumes:
       - ./appsettings.Docker.json:/app/appsettings.json
       - ./sqlite:/app/sqlite
