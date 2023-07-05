@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
 
 namespace DotaHead.ApiClient;
 
@@ -13,7 +12,7 @@ public class SteamApiClient : IDisposable
 
     public SteamApiClient()
     {
-        var appSettings = ReadConfiguration();
+        var appSettings = ConfigurationLoader.Load();
         _steamToken = appSettings.SteamToken;
         _httpClient = new HttpClient
         {
@@ -44,16 +43,6 @@ public class SteamApiClient : IDisposable
         {
             throw new Exception("Error: " + ex.Message);
         }
-    }
-
-    private static AppSettings? ReadConfiguration()
-    {
-        return new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", false, true)
-            .AddEnvironmentVariables("DOTAHEAD_")
-            .Build()
-            .Get<AppSettings>();
     }
 
     public void Dispose()

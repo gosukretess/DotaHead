@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./appsettings.docker.json:/app/appsettings.json
+      - ./appsettings.Docker.json:/app/appsettings.json
       - ./sqlite:/app/sqlite
     environment:
       - DOTAHEAD_DiscordToken=[YOUR_TOKEN_HERE]

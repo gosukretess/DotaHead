@@ -1,9 +1,9 @@
-﻿using Discord;
+﻿using System.Reflection;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using System.Reflection;
 
-namespace DNet_V3_Tutorial
+namespace DotaHead
 {
     public class InteractionHandler
     {
