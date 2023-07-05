@@ -8,6 +8,3 @@ services:
     environment:
       - DOTAHEAD_DiscordToken=[YOUR_TOKEN_HERE]
       - DOTAHEAD_SteamToken=[YOUR_TOKEN_HERE]
-    ports:
-      - 433:433
-      - 80:80
