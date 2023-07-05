@@ -3,3 +3,5 @@ bin/*
 .vs/*
 config.yml
 *.user
+appsettings.Debug.json
+sqlite/Database.db

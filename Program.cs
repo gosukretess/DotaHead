@@ -1,11 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using DNet_V3_Tutorial;
 using DotaHead.Database;
 using DotaHead.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,7 +16,7 @@ public class Program
 
     public async Task MainAsync()
     {
-        var configuration = ReadAppSettings();
+        var configuration = ConfigurationLoader.Load();
         var client = new DiscordSocketClient(new DiscordSocketConfig
         {
             GatewayIntents = GatewayIntents.AllUnprivileged,
@@ -51,21 +49,6 @@ public class Program
         await RunAsync(host);
     }
 
-    private static AppSettings ReadAppSettings()
-    {
-        var appSettings = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", false, true)
-            .AddEnvironmentVariables("DOTAHEAD_")
-            .Build()
-            .Get<AppSettings>();
-
-        if (appSettings == null)
-            throw new ApplicationException("Cannot map appsettings.json content.");
-
-        return appSettings;
-    }
-
     public async Task RunAsync(IHost host)
     {
         using var serviceScope = host.Services.CreateScope();
@@ -79,9 +62,10 @@ public class Program
         var config = provider.GetRequiredService<AppSettings>();
         var monitorsContainer = provider.GetRequiredService<MonitorsContainer>();
 
-
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
         await provider.GetRequiredService<HeroesService>().InitializeAsync();
+
+        
 
         // // Subscribe to client log events
         client.Log += message => LogEvent(provider.GetRequiredService<ILogger<Program>>(), message);
