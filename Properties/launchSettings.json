@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DotaHead": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
