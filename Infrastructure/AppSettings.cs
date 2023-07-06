@@ -1,6 +1,4 @@
-﻿using DotaHead.Services;
-
-namespace DotaHead;
+﻿namespace DotaHead.Infrastructure;
 
 public class AppSettings
 {

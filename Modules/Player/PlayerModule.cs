@@ -51,7 +51,7 @@ public class PlayerModule : InteractionModuleBase<SocketInteractionContext>
         await ModifyOriginalResponseAsync(r => r.Content = $"Player {player.Entity.Name} added!");
     }
 
-    [SlashCommand("player-addme", "Add me as player")]
+    [SlashCommand("player-add-me", "Add me as player")]
     public async Task AddMePlayer(long dotaId)
     {
         await DeferAsync();

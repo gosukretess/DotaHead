@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using DotaHead.Database;
 using DotaHead.Infrastructure;
+using DotaHead.MatchMonitor;
 using DotaHead.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -5,7 +5,7 @@ using DotaHead.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace DotaHead;
+namespace DotaHead.MatchMonitor;
 
 public class MatchMonitor
 {

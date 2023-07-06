@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace DotaHead;
+namespace DotaHead.Infrastructure;
 
 public static class ConfigurationLoader
 {

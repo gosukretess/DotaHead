@@ -4,7 +4,7 @@ using DotaHead.Database;
 using DotaHead.Infrastructure;
 using Microsoft.Extensions.Logging;
 
-namespace DotaHead;
+namespace DotaHead.MatchMonitor;
 
 public class MonitorsContainer
 {

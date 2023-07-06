@@ -3,7 +3,6 @@ services:
   dotahead:
     image: kapu1500/dotahead:latest
     volumes:
-      - ./appsettings.Docker.json:/app/appsettings.json
       - ./sqlite:/app/sqlite
     environment:
       - DOTAHEAD_DiscordToken=[YOUR_TOKEN_HERE]

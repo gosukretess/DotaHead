@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using OpenDotaApi;
 using OpenDotaApi.Api.Matches.Model;
 
-namespace DotaHead;
+namespace DotaHead.MatchMonitor;
 
 public class MatchDetailsBuilder
 {
