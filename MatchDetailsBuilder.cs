@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Discord;
+using DotaHead.Infrastructure;
 using DotaHead.Modules.Match;
 using DotaHead.Services;
 using Microsoft.Extensions.Logging;
@@ -11,12 +12,11 @@ namespace DotaHead;
 public class MatchDetailsBuilder
 {
     private readonly HeroesService _heroesService;
-    private readonly ILogger<MatchDetailsBuilder> _logger;
+    private ILogger Logger => StaticLoggerFactory.GetStaticLogger<MatchDetailsBuilder>();
 
-    public MatchDetailsBuilder(HeroesService heroesService, ILogger<MatchDetailsBuilder> logger)
+    public MatchDetailsBuilder(HeroesService heroesService)
     {
         _heroesService = heroesService;
-        _logger = logger;
     }
 
     public async Task<Embed> Build(long matchId, IEnumerable<long> playersDotaIds)
@@ -27,12 +27,12 @@ public class MatchDetailsBuilder
 
         if (!isParsed)
         {
-            _logger.LogInformation("Match not parsed, requested parse.");
+            Logger.LogInformation("Match not parsed, requested parse.");
             var parseResponse = await openDotaClient.Request.SubmitNewParseRequestAsync(matchId);
             isParsed = await WaitForParseCompletion(openDotaClient, parseResponse.Job.JobId);
         }
 
-        _logger.LogInformation($"Getting match details - matchId: {matchId}");
+        Logger.LogInformation($"Getting match details - matchId: {matchId}");
         var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
 
         var minutes = matchDetails.Duration.GetValueOrDefault() / 60;
@@ -110,13 +110,13 @@ public class MatchDetailsBuilder
             {
                 return true;
             }
-            
-            _logger.LogInformation($"Parse not finished. Waiting for {waitTime} seconds.");
+
+            Logger.LogInformation($"Parse not finished. Waiting for {waitTime} seconds.");
             await Task.Delay(waitTime * 1000);
             waitTime += 2;
         }
 
-        _logger.LogInformation("Parse failed.");
+        Logger.LogInformation("Parse failed.");
         return false;
     }
 

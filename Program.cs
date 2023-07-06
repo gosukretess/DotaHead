@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using DotaHead.Database;
+using DotaHead.Infrastructure;
 using DotaHead.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +30,11 @@ public class Program
             .ConfigureLogging((hostingContext, logging) =>
             {
                 logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-                logging.AddConsole();
+                logging.AddSimpleConsole(options =>
+                {
+                    options.SingleLine = true;
+                    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+                });
             })
             .ConfigureServices((_, services) =>
                 services
@@ -45,6 +50,8 @@ public class Program
                     .AddSingleton<InteractionHandler>()
             )
             .Build();
+        
+        StaticLoggerFactory.Initialize(host.Services.GetRequiredService<ILoggerFactory>());
 
         await RunAsync(host);
     }
@@ -55,21 +62,18 @@ public class Program
         var provider = serviceScope.ServiceProvider;
 
         var dbContext = provider.GetRequiredService<DataContext>();
-        await dbContext.Database.MigrateAsync();
-
-        var commands = provider.GetRequiredService<InteractionService>();
-        var client = provider.GetRequiredService<DiscordSocketClient>();
         var config = provider.GetRequiredService<AppSettings>();
         var monitorsContainer = provider.GetRequiredService<MonitorsContainer>();
+        var client = provider.GetRequiredService<DiscordSocketClient>();
+        var commands = provider.GetRequiredService<InteractionService>();
+
+        await dbContext.Database.MigrateAsync();
 
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
         await provider.GetRequiredService<HeroesService>().InitializeAsync();
 
-        
 
-        // // Subscribe to client log events
         client.Log += message => LogEvent(provider.GetRequiredService<ILogger<Program>>(), message);
-        // // Subscribe to slash command log events
         commands.Log += message => LogEvent(provider.GetRequiredService<ILogger<InteractionService>>(), message);
 
         client.JoinedGuild += guild => OnJoinedGuild(guild, dbContext, commands, monitorsContainer);
@@ -88,7 +92,7 @@ public class Program
         await Task.Delay(-1);
     }
 
-    private async Task OnJoinedGuild(SocketGuild guild, DataContext dataContext, 
+    private static async Task OnJoinedGuild(SocketGuild guild, DataContext dataContext, 
         InteractionService interactionService, MonitorsContainer monitorsContainer)
     {
         if (!dataContext.Servers.Any(s => s.GuildId == guild.Id))
@@ -98,9 +102,9 @@ public class Program
                 GuildId = guild.Id,
                 ChannelId = null,
                 PeakHoursStart = 20,
-                PeakHoursEnd = 1,
-                PeakHoursRefreshTime = 2,
-                NormalRefreshTime = 1
+                PeakHoursEnd = 24,
+                PeakHoursRefreshTime = 5,
+                NormalRefreshTime = 30
             });
         }
 
@@ -110,7 +114,7 @@ public class Program
         await monitorsContainer.AddMonitor(dataContext, guild.Id);
     }
 
-    private Task LogEvent(ILogger logger, LogMessage message)
+    private static Task LogEvent(ILogger logger, LogMessage message)
     {
         logger.LogInformation(message.Message);
         return Task.CompletedTask;

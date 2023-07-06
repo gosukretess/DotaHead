@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using DotaHead.ApiClient;
 using DotaHead.Database;
+using DotaHead.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,17 +14,17 @@ public class MatchMonitor
     private readonly DataContext _dataContext;
     private readonly ulong _guildId;
     private readonly MatchDetailsBuilder _matchDetailsBuilder;
-    private readonly ILogger<MatchMonitor> _logger;
     private ServerDbo? _serverDbo;
 
+    private ILogger Logger => StaticLoggerFactory.GetStaticLogger<MatchMonitor>();
+
     public MatchMonitor(DiscordSocketClient client, DataContext dataContext, ulong guildId,
-        MatchDetailsBuilder matchDetailsBuilder, ILoggerFactory logger)
+        MatchDetailsBuilder matchDetailsBuilder)
     {
         _client = client;
         _dataContext = dataContext;
         _guildId = guildId;
         _matchDetailsBuilder = matchDetailsBuilder;
-        _logger = new Logger<MatchMonitor>(logger);
     }
 
     public async Task StartAsync()
@@ -45,11 +46,11 @@ public class MatchMonitor
 
     private async Task ExecuteTaskAsync()
     {
-        _logger.LogInformation($"Checking for new matches... (GuildId: {_guildId})");
+        Logger.LogInformation($"Checking for new matches... (GuildId: {_guildId})");
         await _dataContext.Entry(_serverDbo!).ReloadAsync();
         if (_serverDbo!.ChannelId == null)
         {
-            _logger.LogWarning($"ChannelId not configured for Guild: {_guildId}!");
+            Logger.LogWarning($"ChannelId not configured for Guild: {_guildId}!");
             return;
         }
 
@@ -72,7 +73,7 @@ public class MatchMonitor
 
         if (matchIdsToRequest.Count == 0)
         {
-            _logger.LogInformation("No new matches found.");
+            Logger.LogInformation("No new matches found.");
             return;
         }
 
@@ -85,7 +86,7 @@ public class MatchMonitor
             await _dataContext.SaveChangesAsync();
         }
 
-        _logger.LogInformation("Finished checking for new matches.");
+        Logger.LogInformation("Finished checking for new matches.");
     }
 
     private TimeSpan CalculateInterval()
