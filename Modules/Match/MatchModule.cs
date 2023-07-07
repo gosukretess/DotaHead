@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using DotaHead.Database;
 using DotaHead.MatchMonitor;
 using OpenDotaApi;
@@ -29,9 +30,33 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
         var lastMatch = recentMatches.FirstOrDefault();
 
         if (lastMatch?.MatchId == null) return;
-        var playerIds = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).Select(p => p.DotaId);
-        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, playerIds);
+        var playerDbos = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).ToList();
+        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, playerDbos);
 
         await ModifyOriginalResponseAsync(r => r.Embed = embed);
+    }
+
+    [SlashCommand("icon-test", "Get data about last match")]
+    public async Task IconTEst()
+    {
+        await DeferAsync();
+
+        var embed = new EmbedBuilder
+        {
+            Title = "IconTest list",
+            Color = Color.Green,
+            Description = "<:dota_hero_morphling:448669324803047445>"
+        };
+        embed.AddField("fieldName", "jakis tekst", true);
+        var path = "Assets/panorama/images/heroes/icons/npc_dota_hero_alchemist_png.png";
+        // var path2 = "Assets/panorama/images/heroes/icons/npc_dota_hero_axe_png.png";
+        embed.WithImageUrl(@$"attachment://{path}");
+        // embed.WithImageUrl(@$"attachment://{path2}");
+
+        var embedB = embed.Build();
+        await Context.Channel.SendFilesAsync(new [] {new FileAttachment(path)}, null, false, null);
+
+        
+        await ModifyOriginalResponseAsync(q => q.Embed = embedB);
     }
 }

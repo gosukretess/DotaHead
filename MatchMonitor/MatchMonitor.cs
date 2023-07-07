@@ -56,13 +56,13 @@ public class MatchMonitor
 
         var matchIdsToRequest = new List<long>();
         using var steamApiClient = new SteamApiClient();
-        var playerIds = _dataContext.Players.Where(p => p.GuildId == _guildId).Select(p => p.DotaId);
+        var playerIds = _dataContext.Players.Where(p => p.GuildId == _guildId).ToList();
 
         // Prepare list of matches to fetch
-        foreach (var playerDotaId in playerIds)
+        foreach (var playerDotaId in playerIds.Select(p => p.DotaId))
         {
             var recentMatches = await steamApiClient.GetMatchHistory(playerDotaId, 1);
-            var lastMatch = recentMatches.Matches.FirstOrDefault();
+            var lastMatch = recentMatches?.Matches.FirstOrDefault();
 
             if (lastMatch?.MatchId == null) continue;
             if (_dataContext.Matches.Where(m => m.GuildId == _guildId).Any(m => m.MatchId == lastMatch.MatchId)) continue;

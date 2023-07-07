@@ -42,7 +42,7 @@ public class Program
                     .AddSingleton(configuration)
                     .AddSingleton(client)
                     .AddDbContext<DataContext>(options => { options.UseSqlite(configuration.ConnectionString); })
-                    .AddSingleton<HeroesService>()
+                    .AddSingleton<DotabaseService>()
                     .AddSingleton<MatchDetailsBuilder>()
                     .AddSingleton<MonitorsContainer>()
                     // Used for slash commands and their registration with Discord
@@ -71,7 +71,7 @@ public class Program
         await dbContext.Database.MigrateAsync();
 
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
-        await provider.GetRequiredService<HeroesService>().InitializeAsync();
+        await provider.GetRequiredService<DotabaseService>().InitializeAsync();
 
 
         client.Log += message => LogEvent(provider.GetRequiredService<ILogger<Program>>(), message);
