@@ -56,12 +56,19 @@ public class MatchMonitor
 
         var matchIdsToRequest = new List<long>();
         using var steamApiClient = new SteamApiClient();
-        var playerIds = _dataContext.Players.Where(p => p.GuildId == _guildId).ToList();
+        var playerDbos = _dataContext.Players.Where(p => p.GuildId == _guildId).ToList();
 
         // Prepare list of matches to fetch
-        foreach (var playerDotaId in playerIds.Select(p => p.DotaId))
+        foreach (var player in playerDbos)
         {
-            var recentMatches = await steamApiClient.GetMatchHistory(playerDotaId, 1);
+            var recentMatches = await steamApiClient.GetMatchHistory(player.DotaId, 1);
+
+            if (recentMatches?.Status == 15)
+            {
+                Logger.LogWarning($"{player.Name} profile is private, cannot fetch matches!");
+                continue;
+            }
+
             var lastMatch = recentMatches?.Matches.FirstOrDefault();
 
             if (lastMatch?.MatchId == null) continue;
@@ -79,7 +86,7 @@ public class MatchMonitor
 
         foreach (var matchId in matchIdsToRequest)
         {
-            var embed = await _matchDetailsBuilder.Build(matchId, playerIds);
+            var embed = await _matchDetailsBuilder.Build(matchId, playerDbos);
             await _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value)
                 .SendMessageAsync(embed: embed);
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId, GuildId = _guildId});
