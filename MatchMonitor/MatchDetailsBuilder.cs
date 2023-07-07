@@ -19,7 +19,7 @@ public class MatchDetailsBuilder
         _dotabaseService = dotabaseService;
     }
 
-    public async Task<Embed> Build(long matchId, List<PlayerDbo> playerDbos)
+    public async Task<MatchDetailsMessage> Build(long matchId, List<PlayerDbo> playerDbos)
     {
         var matchDetails = await GetMatchDetails(matchId);
         var playersBySide = GetPlayersBySide(matchDetails);
@@ -35,14 +35,22 @@ public class MatchDetailsBuilder
         {
             Author = new EmbedAuthorBuilder().WithName(string.Join(", ", ourPlayers.Select(p => p.Name))),
             Description = CreateDescription(isWin, matchDetails),
-            Color = isWin ? Color.Green : Color.Red,
+            Color = isWin ? Discord.Color.Green : Discord.Color.Red,
             Footer = CreateFooter(matchId, isParsed, matchDetails)
         };
 
         FillOurPlayersStats(isParsed, ourPlayers, embed);
         FillHeadToHeadStats(isParsed, embed, playersBySide, ourPlayers);
 
-        return embed.Build();
+        var tableBuilder = new ResultsTableBuilder(_dotabaseService);
+        var path = tableBuilder.DrawTable(playersBySide, matchDetails);
+        embed.WithImageUrl(@$"attachment://table.png");
+
+        return new MatchDetailsMessage
+        {
+            Embed = embed.Build(),
+            ImagePath = path
+        };
     }
 
     private void FillHeadToHeadStats(bool isParsed, EmbedBuilder embed,
@@ -197,6 +205,7 @@ public class MatchDetailsBuilder
 
             if (response == null)
             {
+                Logger.LogInformation("Parse successful.");
                 return true;
             }
 
@@ -274,13 +283,17 @@ public class MatchDetailsBuilder
         };
     }
 
-    private Embed HandleWarning(string errorMessage)
+    private MatchDetailsMessage HandleWarning(string errorMessage)
     {
         Logger.LogWarning(errorMessage);
-        return new EmbedBuilder
+        return new MatchDetailsMessage
         {
-            Description = errorMessage
-        }.Build();
+            Embed =
+                new EmbedBuilder
+                {
+                    Description = errorMessage
+                }.Build()
+        };
     }
 
     private static string GetRoleName(Role role, Lane lane)

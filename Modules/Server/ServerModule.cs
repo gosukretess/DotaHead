@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Interactions;
 using DotaHead.Database;
+using Color = Discord.Color;
 
 namespace DotaHead.Modules.Server;
 

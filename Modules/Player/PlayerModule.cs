@@ -4,6 +4,7 @@ using Discord.Interactions;
 using DotaHead.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Color = Discord.Color;
 
 namespace DotaHead.Modules.Player;
 

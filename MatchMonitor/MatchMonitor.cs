@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using DotaHead.ApiClient;
 using DotaHead.Database;
 using DotaHead.Infrastructure;
@@ -87,8 +88,8 @@ public class MatchMonitor
         foreach (var matchId in matchIdsToRequest)
         {
             var embed = await _matchDetailsBuilder.Build(matchId, playerDbos);
-            await _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value)
-                .SendMessageAsync(embed: embed);
+            var channelContext = _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value);
+            await channelContext.SendFileAsync(embed.ImagePath, embed: embed.Embed);
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId, GuildId = _guildId});
             await _dataContext.SaveChangesAsync();
         }

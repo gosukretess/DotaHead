@@ -7,14 +7,16 @@ namespace DotaHead.Services;
 
 public class DotabaseService
 {
+    private static ILogger Logger => StaticLoggerFactory.GetStaticLogger<DotabaseService>();
     public Dictionary<int, HeroRecord> Heroes { get; set; } = new();
+    public Dictionary<long, ItemRecord> Items { get; set; } = new();
     private Dictionary<string, long> Emojis { get; set; } = new();
-    private ILogger Logger => StaticLoggerFactory.GetStaticLogger<DotabaseService>();
 
     public async Task InitializeAsync()
     {
         await LoadHeroes();
         await LoadEmojis();
+        await LoadItems();
     }
 
     private async Task LoadHeroes()
@@ -29,8 +31,22 @@ public class DotabaseService
             return;
         }
         Heroes = result.ToDictionary(q => q.Id, q => q);
-        Logger.LogInformation($"Data for {Heroes?.Count ?? 0} heroes loaded.");
+        Logger.LogInformation($"Data for {Heroes.Count} heroes loaded.");
+    }
 
+    private async Task LoadItems()
+    {
+        var jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/dotabase/items.json");
+        Logger.LogInformation($"Loading items data from path: {jsonFilePath}");
+        var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
+        var result = JsonSerializer.Deserialize<IEnumerable<ItemRecord>>(jsonContent);
+        if (result == null)
+        {
+            Logger.LogError("Error loading items data.");
+            return;
+        }
+        Items = result.ToDictionary(q => q.Id, q => q);
+        Logger.LogInformation($"Data for {Items.Count} items loaded.");
     }
 
     private async Task LoadEmojis()
@@ -46,7 +62,7 @@ public class DotabaseService
         }
 
         Emojis = result;
-        Logger.LogInformation($"Data for {Emojis?.Count ?? 0} emojis loaded.");
+        Logger.LogInformation($"Data for {Emojis.Count} emojis loaded.");
     }
 
     public string GetEmoji(string heroFullName)
@@ -68,5 +84,17 @@ public class HeroRecord
     public string LocalizedName { get; set; } = string.Empty;
 
     [JsonPropertyName("icon")] 
+    public string Icon { get; set; } = string.Empty;
+
+    [JsonPropertyName("image")] 
+    public string Image { get; set; } = string.Empty;
+}
+
+public class ItemRecord
+{
+    [JsonPropertyName("id")]
+    public long Id { get; set; }
+
+    [JsonPropertyName("icon")]
     public string Icon { get; set; } = string.Empty;
 }

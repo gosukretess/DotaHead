@@ -5,3 +5,5 @@ config.yml
 *.user
 appsettings.Debug.json
 sqlite/Database.db
+sqlite/Database.db-shm
+sqlite/Database.db-wal
