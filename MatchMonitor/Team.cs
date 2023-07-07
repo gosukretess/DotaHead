@@ -1,4 +1,4 @@
-﻿namespace DotaHead.Modules.Match;
+﻿namespace DotaHead.MatchMonitor;
 
 public enum Team
 {

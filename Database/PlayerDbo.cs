@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace DotaHead.Database;
+﻿namespace DotaHead.Database;
 
 public class PlayerDbo
 {
