@@ -67,7 +67,7 @@ public class DotabaseService
 
     public string GetEmoji(string heroFullName)
     {
-        var emojiName = heroFullName.Replace("npc_", "");
+        var emojiName = heroFullName.Replace("npc_dota_hero_", "dota_");
         return Emojis.TryGetValue(emojiName, out var emojiId) ? $"<:{emojiName}:{emojiId}>" : string.Empty;
     }
 }

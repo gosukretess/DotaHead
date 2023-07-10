@@ -78,9 +78,9 @@ public class ResultsTableBuilder
                 DrawPlayerName(ctx, player, colX, lineY, marginY);
                 ctx.DrawText(player.Player.Kills.ToString(), _font, Color.White,
                     new PointF(colX[3], lineY + marginY));
-                ctx.DrawText(player.Player.Assists.ToString(), _font, Color.White,
-                    new PointF(colX[4], lineY + marginY));
                 ctx.DrawText(player.Player.Deaths.ToString(), _font, Color.White,
+                    new PointF(colX[4], lineY + marginY));
+                ctx.DrawText(player.Player.Assists.ToString(), _font, Color.White,
                     new PointF(colX[5], lineY + marginY));
                 ctx.DrawText(FormatThousands(player.Player.TotalGold), _font, Color.Yellow,
                     new PointF(colX[6], lineY + marginY));
