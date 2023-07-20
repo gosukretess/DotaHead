@@ -87,7 +87,15 @@ public class MatchMonitor
 
         foreach (var matchId in matchIdsToRequest)
         {
-            var embed = await _matchDetailsBuilder.Build(matchId, playerDbos);
+            var fetcher = new MatchDetailsFetcher();
+            var matchDetails = await fetcher.GetMatchDetails(matchId);
+            if (matchDetails.Version == null)
+            {
+                Logger.LogInformation($"Match {matchId} replay not available. Will be re-fetched in next iteration.");
+                continue;
+            }
+
+            var embed = await _matchDetailsBuilder.Build(matchDetails, playerDbos);
             var channelContext = _client.GetGuild(_guildId).GetTextChannel(_serverDbo!.ChannelId!.Value);
             await channelContext.SendFileAsync(embed.ImagePath, embed: embed.Embed);
             await _dataContext.Matches.AddAsync(new MatchDbo { MatchId = matchId, GuildId = _guildId});

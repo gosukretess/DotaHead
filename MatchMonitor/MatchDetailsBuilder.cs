@@ -4,7 +4,6 @@ using DotaHead.Database;
 using DotaHead.Infrastructure;
 using DotaHead.Services;
 using Microsoft.Extensions.Logging;
-using OpenDotaApi;
 using OpenDotaApi.Api.Matches.Model;
 
 namespace DotaHead.MatchMonitor;
@@ -19,9 +18,8 @@ public class MatchDetailsBuilder
         _dotabaseService = dotabaseService;
     }
 
-    public async Task<MatchDetailsMessage> Build(long matchId, List<PlayerDbo> playerDbos)
+    public async Task<MatchDetailsMessage> Build(Match matchDetails, List<PlayerDbo> playerDbos)
     {
-        var matchDetails = await GetMatchDetails(matchId);
         var playersBySide = GetPlayersBySide(matchDetails);
         var ourPlayers = GetOurPlayers(playerDbos, playersBySide);
 
@@ -36,7 +34,7 @@ public class MatchDetailsBuilder
             Author = new EmbedAuthorBuilder().WithName(string.Join(", ", ourPlayers.Select(p => p.Name))),
             Description = CreateDescription(isWin, matchDetails),
             Color = isWin ? Discord.Color.Green : Discord.Color.Red,
-            Footer = CreateFooter(matchId, isParsed, matchDetails)
+            Footer = CreateFooter(matchDetails.MatchId!.Value, isParsed, matchDetails)
         };
 
         FillOurPlayersStats(isParsed, ourPlayers, embed);
@@ -176,46 +174,6 @@ public class MatchDetailsBuilder
         var minutes = matchDetails.Duration.GetValueOrDefault() / 60;
         var seconds = matchDetails.Duration.GetValueOrDefault() % 60;
         return (minutes, seconds);
-    }
-
-    private async Task<Match> GetMatchDetails(long matchId)
-    {
-        var openDotaClient = new OpenDota();
-        var lastMatch = await openDotaClient.Matches.GetMatchAsync(matchId);
-        var isParsed = lastMatch.Version != null;
-
-        if (!isParsed)
-        {
-            Logger.LogInformation("Match not parsed, requested parse.");
-            var parseResponse = await openDotaClient.Request.SubmitNewParseRequestAsync(matchId);
-            isParsed = await WaitForParseCompletion(openDotaClient, parseResponse.Job.JobId);
-        }
-
-        Logger.LogInformation($"Getting match details - matchId: {matchId}");
-        var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
-        return matchDetails;
-    }
-
-    private async Task<bool> WaitForParseCompletion(OpenDota openDotaClient, long jobId)
-    {
-        var waitTime = 8;
-        while (waitTime <= 16)
-        {
-            var response = await openDotaClient.Request.GetParseRequestStateAsync(jobId);
-
-            if (response == null)
-            {
-                Logger.LogInformation("Parse successful.");
-                return true;
-            }
-
-            Logger.LogInformation($"Parse not finished. Waiting for {waitTime} seconds.");
-            await Task.Delay(waitTime * 1000);
-            waitTime += 2;
-        }
-
-        Logger.LogInformation("Parse failed.");
-        return false;
     }
 
     private string FormatCoreData(PlayerRecord player)

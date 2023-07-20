@@ -38,8 +38,22 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
         var lastMatch = recentMatches.FirstOrDefault();
 
         if (lastMatch?.MatchId == null) return;
+
+        var fetcher = new MatchDetailsFetcher();
+        var matchDetails = await fetcher.GetMatchDetails(lastMatch.MatchId.Value);
+        if (matchDetails.Version == null)
+        {
+            Logger.LogInformation($"Match {lastMatch.MatchId.Value} replay not available. Will be re-fetched in next iteration.");
+            await ModifyOriginalResponseAsync(r =>
+            {
+                r.Content = new Optional<string>(
+                    $"Replay for match {lastMatch.MatchId.Value} is not yet available. Please try again later.");
+            });
+            return;
+        }
+
         var playerDbos = _dataContext.Players.Where(p => p.GuildId == Context.Guild.Id).ToList();
-        var embed = await _matchDetailsBuilder.Build(lastMatch.MatchId!.Value, playerDbos);
+        var embed = await _matchDetailsBuilder.Build(matchDetails, playerDbos);
 
         await ModifyOriginalResponseAsync(r =>
         {
