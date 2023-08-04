@@ -34,7 +34,7 @@ public class MatchDetailsBuilder
             Author = new EmbedAuthorBuilder().WithName(string.Join(", ", ourPlayers.Select(p => p.Name))),
             Description = CreateDescription(isWin, matchDetails),
             Color = isWin ? Discord.Color.Green : Discord.Color.Red,
-            Footer = CreateFooter(matchDetails.MatchId!.Value, isParsed, matchDetails)
+            Footer = CreateFooter(matchDetails.MatchId!.Value, matchDetails)
         };
 
         FillOurPlayersStats(isParsed, ourPlayers, embed);
@@ -42,7 +42,7 @@ public class MatchDetailsBuilder
 
         var tableBuilder = new ResultsTableBuilder(_dotabaseService);
         var path = tableBuilder.DrawTable(playersBySide, matchDetails);
-        embed.WithImageUrl(@$"attachment://table.png");
+        embed.WithImageUrl(@"attachment://table.png");
 
         return new MatchDetailsMessage
         {
@@ -92,6 +92,7 @@ public class MatchDetailsBuilder
                 $"Hero Damage: {player.HeroDamage}\n" +
                 $"Hero Healing: {player.HeroHealing}\n" +
                 $"Tower Damage: {player.TowerDamage}\n" +
+                // $"Damage Taken: {player.DamageInflictorReceived.Values.Sum()}\n" +
                 $"Net Worth: {player.TotalGold}\n" +
                 $"LH/DN: {player.LastHits} / {player.Denies}");
 
@@ -184,7 +185,6 @@ public class MatchDetailsBuilder
         builder.Append($"GPM: {player.Player.GoldPerMin}\n" +
                        $"Gold 10m: {player.Player.GoldEachMinute[10]}\n" +
                        $"Gold 20m: {player.Player.GoldEachMinute[20]}\n" +
-                       $"LH 5m: {player.Player.LastHitsEachMinute[5]}/{player.Player.DeniesAtDifferentTimes[5]}\n" +
                        $"LH 10m: {player.Player.LastHitsEachMinute[10]}/{player.Player.DeniesAtDifferentTimes[10]}\n" +
                        $"LH 20m: {player.Player.LastHitsEachMinute[20]}/{player.Player.DeniesAtDifferentTimes[20]}\n");
 
@@ -196,24 +196,25 @@ public class MatchDetailsBuilder
     {
         var builder = new StringBuilder();
 
-        player.Player.ItemUses.TryGetValue("ward_sentry", out var sentryWards);
-        player.Player.ItemUses.TryGetValue("ward_observer", out var observerWards);
-
         builder.Append("\n\n");
         builder.Append($"GPM: {player.Player.GoldPerMin}\n");
         builder.Append($"Camps stacked: {player.Player.CampsStacked}\n");
         builder.Append(
             $"Wisdom runes: {(player.Player.Runes.TryGetValue("8", out var runeVal2) ? runeVal2 : 0)}\n");
-        builder.Append($"Sentry wards: {sentryWards}\n");
-        builder.Append($"Observer wards: {observerWards}\n");
+        builder.Append($"Sentry wards: {player.Player.PurchaseWardSentry}\n");
+        builder.Append($"Observer wards: {player.Player.PurchaseWardObserver}\n");
 
 
         return builder.ToString();
     }
 
-    private static EmbedFooterBuilder CreateFooter(long matchId, bool isParsed, Match matchDetails) =>
-        new EmbedFooterBuilder().WithText(
-            $"MatchId: {matchId} ({(isParsed ? "parsed" : "not parsed")}) • {matchDetails.StartTime!.Value.ToLocalTime()}");
+    private static EmbedFooterBuilder CreateFooter(long matchId, Match matchDetails)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw");
+        var dateTime = TimeZoneInfo.ConvertTimeFromUtc(matchDetails.StartTime!.Value, timeZone);
+        return new EmbedFooterBuilder().WithText(
+            $"MatchId: {matchId} • {dateTime}");
+    }
 
     private string GetHeroName(int heroId) =>
         _dotabaseService.Heroes.TryGetValue(heroId, out var hero) ? hero.LocalizedName : "Unknown";

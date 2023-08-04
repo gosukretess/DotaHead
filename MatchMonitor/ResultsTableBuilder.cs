@@ -93,7 +93,7 @@ public class ResultsTableBuilder
                 };
                 foreach (var itemId in playerItems.Where(i => i != null && i != 0))
                 {
-                    var item = _dotabaseService.Items[itemId.Value];
+                    var item = _dotabaseService.Items[itemId!.Value];
                     var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
                         item.Icon.TrimStart('/'));
 
@@ -101,11 +101,14 @@ public class ResultsTableBuilder
                     imageX += 69;
                 }
 
-                var nautralItem = _dotabaseService.Items[player.Player.NeutralItem.Value];
-                var neutralImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
-                    nautralItem.Icon.TrimStart('/'));
+                if (player.Player.NeutralItem != null && player.Player.NeutralItem.Value != 0)
+                {
+                    var neutralItem = _dotabaseService.Items[player.Player.NeutralItem.Value];
+                    var neutralImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
+                        neutralItem.Icon.TrimStart('/'));
 
-                AddImageToImage(image, neutralImage, imageX+10, lineY+9, ImageType.NeutralItem);
+                    AddImageToImage(image, neutralImage, 989, lineY + 9, ImageType.NeutralItem);
+                }
 
                 lineY += 50;
             }
