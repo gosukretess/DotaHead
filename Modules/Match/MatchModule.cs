@@ -36,6 +36,8 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
 
         if (lastMatch?.MatchId == null) return;
 
+        Logger.LogInformation($"{Context.User.GlobalName} requested data about matchId: {lastMatch.MatchId}");
+
         var fetcher = new MatchDetailsFetcher();
         var matchDetails = await fetcher.GetMatchDetails(lastMatch.MatchId.Value);
         if (matchDetails.Version == null)
@@ -63,6 +65,8 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
     public async Task GetMatch(long matchId)
     {
         await DeferAsync();
+
+        Logger.LogInformation($"{Context.User.GlobalName} requested data about matchId: {matchId}");
 
         using var steamApiClient = new SteamApiClient();
         var steamMatch = await steamApiClient.GetMatchDetails(matchId);

@@ -23,16 +23,18 @@ public class MonitorsContainer
 
     public async Task AddMonitor(DataContext dataContext, ulong guildId)
     {
+        // TODO: Disable monitors for Emoji Servers
+
         if (_monitors.All(m => m.GuildId != guildId))
         {
             var monitor = new MatchMonitor(_client, dataContext, guildId, _matchDetailsBuilder);
             await monitor.StartAsync();
             _monitors.Add(monitor);
-            Logger.LogInformation($"Successfully added match monitor for ServerId: {guildId}");
+            Logger.LogInformation($"Successfully added match monitor for GuildId: {guildId}");
         }
         else
         {
-            Logger.LogInformation($"Monitor already exists for ServerId: {guildId}");
+            Logger.LogInformation($"Monitor already exists for GuildId: {guildId}");
         }
     }
 

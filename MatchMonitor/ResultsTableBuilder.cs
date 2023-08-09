@@ -10,12 +10,13 @@ namespace DotaHead.MatchMonitor;
 
 public class ResultsTableBuilder
 {
-    private const int Margin = 5;
+    private const int Margin = 4;
     private const int Height = 600;
     private const int Width = 1043;
     private readonly DotabaseService _dotabaseService;
     private readonly Font _headerFont;
     private readonly Font _font;
+    private const string ScepterDir = "Assets/panorama/images/hud/reborn";
 
     private ILogger Logger => StaticLoggerFactory.GetStaticLogger<MatchDetailsBuilder>();
 
@@ -51,13 +52,13 @@ public class ResultsTableBuilder
             AddHeader(image, matchDetails, winTeam);
 
             // Radiant and Dire colors
-            ctx.DrawLines(Pens.Solid(Color.Green, 10), new PointF(15, 90), new PointF(15, 340));
-            ctx.DrawLines(Pens.Solid(Color.Crimson, 10), new PointF(15, 340), new PointF(15, 590));
+            ctx.DrawLines(Pens.Solid(Color.Green, 6), new PointF(8, 90), new PointF(8, 340));
+            ctx.DrawLines(Pens.Solid(Color.Crimson, 6), new PointF(8, 340), new PointF(8, 590));
 
             var marginY = 13;
             var colX = new[]
             {
-                20, 109 + Margin, 150 + Margin, 350 + Margin, 390 + Margin, 430 + Margin, 470 + Margin, 560 + Margin
+                11, 100 + Margin, 137 + Margin, 337 + Margin, 377 + Margin, 417 + Margin, 457 + Margin, 537 + Margin, 571 + Margin, 989 + Margin
             };
 
             var headersY = 60;
@@ -65,7 +66,7 @@ public class ResultsTableBuilder
             ctx.DrawText("D", _font, Color.White, new PointF(colX[4], headersY));
             ctx.DrawText("A", _font, Color.White, new PointF(colX[5], headersY));
             ctx.DrawText("Net", _font, Color.Yellow, new PointF(colX[6], headersY));
-            ctx.DrawText("Items", _font, Color.White, new PointF(colX[7], headersY));
+            ctx.DrawText("Items", _font, Color.White, new PointF(colX[8], headersY));
 
             var lineY = 90;
             foreach (var player in playersBySide[Team.Radiant].Concat(playersBySide[Team.Dire]))
@@ -85,12 +86,33 @@ public class ResultsTableBuilder
                 ctx.DrawText(FormatThousands(player.Player.TotalGold), _font, Color.Yellow,
                     new PointF(colX[6], lineY + marginY));
 
-                var imageX = colX[7];
+
+                var shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_on_psd.png");
+                if (player.Player.ItemUsage.TryGetValue("aghanims_shard", out var shard) && shard is > 0)
+                {
+                    shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_psd.png");
+                }
+                AddImageToImage(image, shardImgPath, colX[7] + 5, lineY + 30, ImageType.Shard);
+
+
+                var scepterImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_scepter_psd.png");
+
+                var isScepterUsage = player.Player.ItemUsage.TryGetValue("ultimate_scepter", out var scepter);
+                var isScepterBlessingUsage =
+                    player.Player.ItemUsage.TryGetValue("ultimate_scepter_2", out var scepterBlessing);
+                if ((isScepterUsage || isScepterBlessingUsage) && (scepter is > 0 || scepterBlessing is > 0))
+                {
+                    scepterImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_scepter_on_psd.png");
+                }
+                AddImageToImage(image, scepterImgPath, colX[7], lineY, ImageType.Scepter);
+
+
                 var playerItems = new[]
                 {
                     player.Player.Item0, player.Player.Item1, player.Player.Item2,
                     player.Player.Item3, player.Player.Item4, player.Player.Item5
                 };
+                var imageX = colX[8];
                 foreach (var itemId in playerItems.Where(i => i != null && i != 0))
                 {
                     var item = _dotabaseService.Items[itemId!.Value];
@@ -107,7 +129,7 @@ public class ResultsTableBuilder
                     var neutralImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
                         neutralItem.Icon.TrimStart('/'));
 
-                    AddImageToImage(image, neutralImage, 989, lineY + 9, ImageType.NeutralItem);
+                    AddImageToImage(image, neutralImage, colX[9], lineY + 9, ImageType.NeutralItem);
                 }
 
                 lineY += 50;
@@ -141,6 +163,8 @@ public class ResultsTableBuilder
             ImageType.Item => new Size(69, 50),
             ImageType.NeutralItem => new Size(44, 32),
             ImageType.Background => new Size(1043, 600),
+            ImageType.Scepter => new Size(30, 30),
+            ImageType.Shard => new Size(20, 20),
             _ => throw new ArgumentOutOfRangeException(nameof(imageType), imageType, null)
         };
 
@@ -187,6 +211,8 @@ public class ResultsTableBuilder
         Hero,
         Item,
         Background, 
-        NeutralItem
+        NeutralItem, 
+        Scepter,
+        Shard
     }
 }

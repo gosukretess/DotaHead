@@ -18,7 +18,7 @@ namespace DotaHead.MatchMonitor
 
             if (!isParsed)
             {
-                Logger.LogInformation("Match not parsed, requested parse.");
+                Logger.LogInformation($"Match not parsed, requested parse - matchId: {matchId}.");
                 await WaitForParseCompletion(openDotaClient, matchId);
             }
 
