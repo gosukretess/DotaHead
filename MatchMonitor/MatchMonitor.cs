@@ -4,11 +4,12 @@ using DotaHead.ApiClient;
 using DotaHead.Database;
 using DotaHead.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DotaHead.MatchMonitor;
 
-public class MatchMonitor
+public class MatchMonitor : IDisposable
 {
     public readonly ulong GuildId;
     private Timer? _timer;
@@ -19,13 +20,13 @@ public class MatchMonitor
 
     private static ILogger Logger => StaticLoggerFactory.GetStaticLogger<MatchMonitor>();
 
-    public MatchMonitor(DiscordSocketClient client, DataContext dataContext, ulong guildId,
-        MatchDetailsBuilder matchDetailsBuilder)
+    public MatchMonitor(DiscordSocketClient client, ulong guildId,
+        MatchDetailsBuilder matchDetailsBuilder, IServiceScopeFactory scopeFactory)
     {
         GuildId = guildId;
         _client = client;
-        _dataContext = dataContext;
         _matchDetailsBuilder = matchDetailsBuilder;
+        _dataContext = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
     }
 
     public async Task StartAsync()
@@ -132,8 +133,10 @@ public class MatchMonitor
         return TimeSpan.FromMinutes(_serverDbo.NormalRefreshTime);
     }
 
-    public void Stop()
+    public void Dispose()
     {
         _timer?.Dispose();
+        _client.Dispose();
+        _dataContext.Dispose();
     }
 }

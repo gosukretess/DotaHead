@@ -57,7 +57,7 @@ public class Program
         await RunAsync(host);
     }
 
-    public async Task RunAsync(IHost host)
+    public static async Task RunAsync(IHost host)
     {
         using var serviceScope = host.Services.CreateScope();
         var provider = serviceScope.ServiceProvider;
@@ -83,7 +83,7 @@ public class Program
             foreach (var server in dbContext.Servers)
             {
                 await commands.RegisterCommandsToGuildAsync(server.GuildId);
-                await monitorsContainer.AddMonitor(dbContext, server.GuildId);
+                await monitorsContainer.AddMonitor(server.GuildId);
             }
         };
 
@@ -112,7 +112,7 @@ public class Program
         await dataContext.SaveChangesAsync();
 
         await interactionService.RegisterCommandsToGuildAsync(guild.Id);
-        await monitorsContainer.AddMonitor(dataContext, guild.Id);
+        await monitorsContainer.AddMonitor(guild.Id);
     }
 
     private static Task LogEvent(ILogger logger, LogMessage message)
