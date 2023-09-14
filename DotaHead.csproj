@@ -9,8 +9,14 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="ApiClient\OpenDota\**" />
+    <Compile Remove="Libraries\**" />
     <Compile Remove="sqlite\**" />
+    <EmbeddedResource Remove="ApiClient\OpenDota\**" />
+    <EmbeddedResource Remove="Libraries\**" />
     <EmbeddedResource Remove="sqlite\**" />
+    <None Remove="ApiClient\OpenDota\**" />
+    <None Remove="Libraries\**" />
     <None Remove="sqlite\**" />
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +36,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Remove="ApiClient\OpenDota\**" />
+    <Content Remove="Libraries\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.11.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.8">
       <PrivateAssets>all</PrivateAssets>
@@ -41,9 +51,11 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
-    <PackageReference Include="OpenDotaApi" Version="1.3.6" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Libraries\OpenDota\OpenDotaApi\OpenDotaApi.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.Debug.json">

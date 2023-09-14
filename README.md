@@ -2,9 +2,11 @@
 
 Simple Discord bot to get Dota2 match details
 
-Used in project: https://github.com/mdiller/dotabase
+## Prerequisities
 
-Inspiration and emojis from: https://github.com/mdiller/MangoByte
+Clone https://github.com/gosukretess/OpenDota-API repository to Libraries/OpenDota folder.
+
+## Configuration
 
 **docker-compose.yml**
 
@@ -19,3 +21,8 @@ services:
       - DOTAHEAD_DiscordToken=YOUR_DISCORD_BOT_TOKEN
       - DOTAHEAD_SteamToken=YOUR_STEAM_TOKEN
 ```
+
+## Honorable mentions
+
+Dota2 items and heroes database used: https://github.com/mdiller/dotabase
+Inspiration from: https://github.com/mdiller/MangoByte
