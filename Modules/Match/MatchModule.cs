@@ -40,6 +40,11 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
 
         var fetcher = new MatchDetailsFetcher();
         var matchDetails = await fetcher.GetMatchDetails(lastMatch.MatchId.Value);
+        if (matchDetails == null)
+        {
+            Logger.LogWarning($"Failed to get match {lastMatch.MatchId.Value} details.");
+            return;
+        }
         if (matchDetails.Version == null)
         {
             Logger.LogInformation($"Match {lastMatch.MatchId.Value} replay not available. Will be re-fetched in next iteration.");
@@ -93,6 +98,11 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
 
         var fetcher = new MatchDetailsFetcher();
         var matchDetails = await fetcher.GetMatchDetails(matchId);
+        if (matchDetails == null)
+        {
+            Logger.LogWarning($"Failed to get match {matchId} details.");
+            return;
+        }
         if (matchDetails.Version == null)
         {
             Logger.LogInformation($"Match {matchId} replay not available. Will be re-fetched in next iteration.");

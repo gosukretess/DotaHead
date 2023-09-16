@@ -9,22 +9,31 @@ namespace DotaHead.MatchMonitor
     {
         private static ILogger Logger => StaticLoggerFactory.GetStaticLogger<MatchDetailsFetcher>();
 
-        public async Task<Match> GetMatchDetails(long matchId)
+        public async Task<Match?> GetMatchDetails(long matchId)
         {
-            var openDotaClient = new OpenDota();
-            var lastMatch = await openDotaClient.Matches.GetMatchAsync(matchId);
-
-            var isParsed = lastMatch.Version != null;
-
-            if (!isParsed)
+            try
             {
-                Logger.LogInformation($"Match not parsed, requested parse - matchId: {matchId}.");
-                await WaitForParseCompletion(openDotaClient, matchId);
+                var openDotaClient = new OpenDota();
+                var lastMatch = await openDotaClient.Matches.GetMatchAsync(matchId);
+
+                var isParsed = lastMatch.Version != null;
+
+                if (!isParsed)
+                {
+                    Logger.LogInformation($"Match not parsed, requested parse - matchId: {matchId}.");
+                    await WaitForParseCompletion(openDotaClient, matchId);
+                }
+
+                Logger.LogInformation($"Getting match details - matchId: {matchId}");
+                var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
+                return matchDetails;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "There was exception when getting match details.");
             }
 
-            Logger.LogInformation($"Getting match details - matchId: {matchId}");
-            var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
-            return matchDetails;
+            return null;
         }
 
         private async Task WaitForParseCompletion(OpenDota openDotaClient, long matchId)

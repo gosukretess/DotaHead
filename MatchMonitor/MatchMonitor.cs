@@ -98,6 +98,11 @@ public class MatchMonitor : IDisposable
 
             var fetcher = new MatchDetailsFetcher();
             var matchDetails = await fetcher.GetMatchDetails(matchId);
+            if (matchDetails == null)
+            {
+                Logger.LogWarning($"Failed to get match {matchId} details.");
+                continue;
+            }
             if (matchDetails.Version == null)
             {
                 Logger.LogInformation($"Match {matchId} replay not available. Will be re-fetched in next iteration.");

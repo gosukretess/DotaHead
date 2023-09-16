@@ -87,10 +87,10 @@ public class ResultsTableBuilder
                     new PointF(colX[6], lineY + marginY));
 
 
-                var shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_on_psd.png");
+                var shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_psd.png");
                 if (player.Player.ItemUsage.TryGetValue("aghanims_shard", out var shard) && shard is > 0)
                 {
-                    shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_psd.png");
+                    shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_on_psd.png");
                 }
                 AddImageToImage(image, shardImgPath, colX[7] + 5, lineY + 30, ImageType.Shard);
 
