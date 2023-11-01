@@ -88,7 +88,10 @@ public class ResultsTableBuilder
 
 
                 var shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_psd.png");
-                if (player.Player.ItemUsage.TryGetValue("aghanims_shard", out var shard) && shard is > 0)
+                if (
+                    (player.Player.ItemUsage.TryGetValue("aghanims_shard", out var shard) && shard is > 0)
+                    || player.Player.PermanentBuffs.Any(b => b.PermanentBuffPermanentBuff == 12)
+                )
                 {
                     shardImgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ScepterDir, "aghsstatus_shard_on_psd.png");
                 }
