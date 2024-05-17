@@ -1,6 +1,4 @@
 ﻿using Discord.WebSocket;
-using DotaHead.ApiClient;
-using DotaHead.Database;
 using DotaHead.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

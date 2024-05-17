@@ -57,7 +57,13 @@ services:
 
 - How to create Discord Bot Token: https://discord.com/developers/docs/intro
 
+## New items/heroes
+Download json files from https://github.com/mdiller/dotabase/tree/master/json and copy to `\Assets\dotabase`
+
+Download [Source2Viewer](https://valveresourceformat.github.io), open VPK file `\Steam\steamapps\common\dota 2 beta\game\dota\pak01_000.vpk` and then **Decompile and Export** corresponding folders to `Assets\panorama\images`
+
 ## Honorable mentions
 
 Dota2 items and heroes database used: https://github.com/mdiller/dotabase
+
 Inspiration from: https://github.com/mdiller/MangoByte

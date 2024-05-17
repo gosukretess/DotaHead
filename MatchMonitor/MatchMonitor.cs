@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using DotaHead.ApiClient;
 using DotaHead.Database;
 using DotaHead.Infrastructure;
