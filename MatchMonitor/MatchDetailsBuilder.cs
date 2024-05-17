@@ -20,6 +20,8 @@ public class MatchDetailsBuilder
 
     public async Task<MatchDetailsMessage> Build(Match matchDetails, List<PlayerDbo> playerDbos)
     {
+        Logger.LogInformation($"Building match details for matchId {matchDetails.MatchId}");
+
         var playersBySide = GetPlayersBySide(matchDetails);
         var ourPlayers = GetOurPlayers(playerDbos, playersBySide);
 

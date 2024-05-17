@@ -4,7 +4,10 @@ using DotaHead.Services;
 using Microsoft.Extensions.Logging;
 using OpenDotaApi.Api.Matches.Model;
 using SixLabors.Fonts;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace DotaHead.MatchMonitor;
 

@@ -11,6 +11,7 @@ namespace DotaHead.MatchMonitor
 
         public async Task<Match?> GetMatchDetails(long matchId)
         {
+            Logger.LogInformation($"Requested match details fetch for matchId: {matchId}");
             try
             {
                 var openDotaClient = new OpenDota();
@@ -26,6 +27,8 @@ namespace DotaHead.MatchMonitor
 
                 Logger.LogInformation($"Getting match details - matchId: {matchId}");
                 var matchDetails = await openDotaClient.Matches.GetMatchAsync(matchId);
+                Logger.LogInformation($"Successful response from OpenDotaApi for matchId details {matchId}");
+
                 return matchDetails;
             }
             catch (Exception ex)
@@ -40,6 +43,8 @@ namespace DotaHead.MatchMonitor
         {
             var waitTime = 8;
             var parseResponse = await openDotaClient.Request.SubmitNewParseRequestAsync(matchId);
+            Logger.LogInformation($"Parse request submitted for matchId {matchId}");
+
             var jobId = parseResponse.Job.JobId;
             while (waitTime <= 16)
             {

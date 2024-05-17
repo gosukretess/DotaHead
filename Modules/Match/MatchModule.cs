@@ -43,6 +43,11 @@ public class MatchModule : InteractionModuleBase<SocketInteractionContext>
         if (matchDetails == null)
         {
             Logger.LogWarning($"Failed to get match {lastMatch.MatchId.Value} details.");
+            await ModifyOriginalResponseAsync(r =>
+            {
+                r.Content = new Optional<string>(
+                    $"Failed to get match {lastMatch.MatchId.Value} details. Please try again later.");
+            });
             return;
         }
         if (matchDetails.Version == null)

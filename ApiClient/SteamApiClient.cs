@@ -39,6 +39,7 @@ public class SteamApiClient : IDisposable
                     Logger.LogWarning($"There was an error parsing SteamApi response. Response body: {jsonResponse}");
                 }
 
+                Logger.LogInformation($"Successful response from SteamApi for accountId {accountId}");
                 return root?.Result;
             }
 
@@ -69,6 +70,7 @@ public class SteamApiClient : IDisposable
                     Logger.LogWarning($"There was an error parsing SteamApi response. Response body: {jsonResponse}");
                 }
 
+                Logger.LogInformation($"Successful response from SteamApi for matchId {matchId}");
                 return root?.Result;
             }
 
