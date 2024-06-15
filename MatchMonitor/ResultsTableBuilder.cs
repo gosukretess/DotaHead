@@ -121,11 +121,20 @@ public class ResultsTableBuilder
                 var imageX = colX[8];
                 foreach (var itemId in playerItems.Where(i => i != null && i != 0))
                 {
-                    var item = _dotabaseService.Items[itemId!.Value];
-                    var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
-                        item.Icon.TrimStart('/'));
-
-                    AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
+                    if (_dotabaseService.Items.TryGetValue(itemId!.Value, out var item))
+                    {
+                        var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
+                            item.Icon.TrimStart('/'));
+                        AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
+                    }
+                    else
+                    {
+                        {
+                            var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "unknown_item.png");
+                            AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
+                        }
+                    }
+                    
                     imageX += 69;
                 }
 
