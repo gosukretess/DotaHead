@@ -55,8 +55,8 @@ public class ResultsTableBuilder
             AddHeader(image, matchDetails, winTeam);
 
             // Radiant and Dire colors
-            ctx.DrawLines(Pens.Solid(Color.Green, 6), new PointF(8, 90), new PointF(8, 340));
-            ctx.DrawLines(Pens.Solid(Color.Crimson, 6), new PointF(8, 340), new PointF(8, 590));
+            ctx.DrawPolygon(Pens.Solid(Color.Green, 6), new PointF(8, 90), new PointF(8, 340));
+            ctx.DrawPolygon(Pens.Solid(Color.Crimson, 6), new PointF(8, 340), new PointF(8, 590));
 
             var marginY = 13;
             var colX = new[]
@@ -74,7 +74,7 @@ public class ResultsTableBuilder
             var lineY = 90;
             foreach (var player in playersBySide[Team.Radiant].Concat(playersBySide[Team.Dire]))
             {
-                var hero = _dotabaseService.Heroes[player.Player.HeroId.Value];
+                var hero = _dotabaseService.Heroes[player.Player.HeroId!.Value];
                 var imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", hero.Image.TrimStart('/'));
                 AddImageToImage(image, imagePath, colX[0], lineY, ImageType.Hero);
                 ctx.DrawText(player.Player.Level.ToString(), _font, Color.Gold,
