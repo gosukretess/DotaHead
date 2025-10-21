@@ -19,10 +19,20 @@ public class DotabaseService
         await LoadItems();
     }
 
+    public ItemRecord GetItem(long id)
+    {
+        if(Items.TryGetValue(id, out var item)) return item;
+        return new ItemRecord
+        {
+            Id = 0,
+            Icon = "unknown_item.png"
+        };
+    }
+
     private async Task LoadHeroes()
     {
         var jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/dotabase/heroes.json");
-        Logger.LogInformation($"Loading heroes data from path: {jsonFilePath}");
+        Logger.LogInformation("Loading heroes data from path: {JsonFilePath}", jsonFilePath);
         var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
         var result = JsonSerializer.Deserialize<IEnumerable<HeroRecord>>(jsonContent);
         if (result == null)
@@ -31,13 +41,13 @@ public class DotabaseService
             return;
         }
         Heroes = result.ToDictionary(q => q.Id, q => q);
-        Logger.LogInformation($"Data for {Heroes.Count} heroes loaded.");
+        Logger.LogInformation("Data for {HeroesCount} heroes loaded.", Heroes.Count);
     }
 
     private async Task LoadItems()
     {
         var jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/dotabase/items.json");
-        Logger.LogInformation($"Loading items data from path: {jsonFilePath}");
+        Logger.LogInformation("Loading items data from path: {JsonFilePath}", jsonFilePath);
         var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
         var result = JsonSerializer.Deserialize<IEnumerable<ItemRecord>>(jsonContent);
         if (result == null)
@@ -52,7 +62,7 @@ public class DotabaseService
     private async Task LoadEmojis()
     {
         var jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/dotabase/emojis.json");
-        Logger.LogInformation($"Loading emojis data from path: {jsonFilePath}");
+        Logger.LogInformation("Loading emojis data from path: {JsonFilePath}", jsonFilePath);
         var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
         var result = JsonSerializer.Deserialize<Dictionary<string, long>>(jsonContent);
         if (result == null)
@@ -62,7 +72,7 @@ public class DotabaseService
         }
 
         Emojis = result;
-        Logger.LogInformation($"Data for {Emojis.Count} emojis loaded.");
+        Logger.LogInformation("Data for {EmojisCount} emojis loaded.", Emojis.Count);
     }
 
     public string GetEmoji(string heroFullName)

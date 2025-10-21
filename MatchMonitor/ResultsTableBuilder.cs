@@ -121,26 +121,17 @@ public class ResultsTableBuilder
                 var imageX = colX[8];
                 foreach (var itemId in playerItems.Where(i => i != null && i != 0))
                 {
-                    if (_dotabaseService.Items.TryGetValue(itemId!.Value, out var item))
-                    {
-                        var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
-                            item.Icon.TrimStart('/'));
-                        AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
-                    }
-                    else
-                    {
-                        {
-                            var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "unknown_item.png");
-                            AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
-                        }
-                    }
-                    
+                    var item = _dotabaseService.GetItem(itemId!.Value);
+                    var itemImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
+                        item.Icon.TrimStart('/'));
+
+                    AddImageToImage(image, itemImage, imageX, lineY, ImageType.Item);
                     imageX += 69;
                 }
 
                 if (player.Player.NeutralItem != null && player.Player.NeutralItem.Value != 0)
                 {
-                    var neutralItem = _dotabaseService.Items[player.Player.NeutralItem.Value];
+                    var neutralItem = _dotabaseService.GetItem(player.Player.NeutralItem.Value);
                     var neutralImage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets",
                         neutralItem.Icon.TrimStart('/'));
 
