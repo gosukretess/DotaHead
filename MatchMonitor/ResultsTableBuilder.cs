@@ -55,9 +55,9 @@ public class ResultsTableBuilder
             AddHeader(image, matchDetails, winTeam);
 
             // Radiant and Dire colors
-            ctx.DrawPolygon(Pens.Solid(Color.Green, 6), new PointF(8, 90), new PointF(8, 340));
-            ctx.DrawPolygon(Pens.Solid(Color.Crimson, 6), new PointF(8, 340), new PointF(8, 590));
-
+            ctx.DrawLine(Pens.Solid(Color.Green, 6), new PointF(8, 90), new PointF(8, 340));
+            ctx.DrawLine(Pens.Solid(Color.Crimson, 6), new PointF(8, 340), new PointF(8, 590));
+            
             var marginY = 13;
             var colX = new[]
             {
@@ -77,14 +77,14 @@ public class ResultsTableBuilder
                 var hero = _dotabaseService.Heroes[player.Player.HeroId!.Value];
                 var imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", hero.Image.TrimStart('/'));
                 AddImageToImage(image, imagePath, colX[0], lineY, ImageType.Hero);
-                ctx.DrawText(player.Player.Level.ToString(), _font, Color.Gold,
+                ctx.DrawText(player.Player.Level.ToString() ?? "0", _font, Color.Gold,
                     new PointF(colX[1], lineY + marginY));
                 DrawPlayerName(ctx, player, colX, lineY, marginY);
-                ctx.DrawText(player.Player.Kills.ToString(), _font, Color.White,
+                ctx.DrawText(player.Player.Kills.ToString() ?? "0", _font, Color.White,
                     new PointF(colX[3], lineY + marginY));
-                ctx.DrawText(player.Player.Deaths.ToString(), _font, Color.White,
+                ctx.DrawText(player.Player.Deaths.ToString() ?? "0", _font, Color.White,
                     new PointF(colX[4], lineY + marginY));
-                ctx.DrawText(player.Player.Assists.ToString(), _font, Color.White,
+                ctx.DrawText(player.Player.Assists.ToString() ?? "0", _font, Color.White,
                     new PointF(colX[5], lineY + marginY));
                 ctx.DrawText(FormatThousands(player.Player.TotalGold), _font, Color.Yellow,
                     new PointF(colX[6], lineY + marginY));

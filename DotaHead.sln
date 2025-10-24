@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotaHead", "DotaHead.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenDotaApi", "Libraries\OpenDota\OpenDotaApi\OpenDotaApi.csproj", "{0578D4A9-FCD9-425A-A5E5-180DC65BD7A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{1015D6A9-A1F1-4350-A97C-09E71DAC3EA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0578D4A9-FCD9-425A-A5E5-180DC65BD7A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0578D4A9-FCD9-425A-A5E5-180DC65BD7A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0578D4A9-FCD9-425A-A5E5-180DC65BD7A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1015D6A9-A1F1-4350-A97C-09E71DAC3EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1015D6A9-A1F1-4350-A97C-09E71DAC3EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1015D6A9-A1F1-4350-A97C-09E71DAC3EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1015D6A9-A1F1-4350-A97C-09E71DAC3EA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
